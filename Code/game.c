@@ -2,11 +2,12 @@
 //also shows how fast (or slow) C code is
 
 #include "neslib.h"
+#include "background.h"
 
 
 //general purpose vars
 
-static unsigned char spr; //To keep track our sprite
+static unsigned char spr; //To keep track of our sprite
 static unsigned char pad;
 static unsigned char key;
 static unsigned char menu;
@@ -39,6 +40,8 @@ const unsigned char palSprites[16]={
 	0x0f,0x19,0x29,0x39
 };
 
+const unsigned char paletteBG[16]={ 0x0f,0x00,0x10,0x30,0x0f,0x01,0x21,0x31,0x0f,0x06,0x16,0x26,0x0f,0x09,0x19,0x29 };
+
 
 //put a string into the nametable
 
@@ -51,12 +54,66 @@ void put_str(unsigned int adr,const char *str)
 		if(!*str) break;
 
         //To be changed once the alhpabet is integrated in our tileset
-		vram_put((*str++)-0x20);//-0x20 because ASCII code 0x20 is placed in tile 0 of the CHR
+		vram_put((*str++)+0x1f);//-0x20 because ASCII code 0x20 is placed in tile 0 of the CHR
+	}
+}
+
+void put_brick(unsigned int adr)
+{
+    vram_adr(adr);
+    vram_put(0x06);
+}
+
+
+void drawBackground(void)
+{
+    pal_bg(paletteBG);
+    vram_adr(NAMETABLE_A);
+    vram_unrle(background);
+}
+
+void clearScreen(void)
+{
+    vram_adr(NAMETABLE_A);
+    vram_fill(0x10, 0x3A0); 
+}
+
+
+void lostScreen(void)
+{
+    pal_clear();
+    ppu_off();
+
+    clearScreen();
+
+    pal_col(1,0x21);
+    put_str(NTADR_A(4,1), "YOU LOST!");
+
+    ppu_on_all();
+
+	while(1)
+	{
+	    ppu_wait_nmi();
+
+		key=pad_trigger(0);
+
+		//We wait that the user presses START (enter on a PC)
+		if(key&PAD_START){
+            pal_clear(); //Set every color to black, hence hide everything
+            clearScreen();
+            ppu_off();
+            break;
+		}
 	}
 }
 
 
 void home(void){
+
+    ppu_off();
+    pal_clear();
+
+    clearScreen();
 
 	pal_col(1,0x21);
 
@@ -86,6 +143,8 @@ void home(void){
 		if(key&PAD_START){
             sfx_play(0,0);
             pal_clear(); //Set every color to black, hence hide everything
+            clearScreen();
+            ppu_off();
             break;
 		}
 	}
@@ -93,7 +152,7 @@ void home(void){
 
 
 
-void move_ball()
+char move_ball(void)
 {
     spr=oam_spr(x_ball,y_ball,0x05,1,spr);//0x05 is tile number, 1 is palette
 
@@ -111,12 +170,17 @@ void move_ball()
         y_ball_speed = -y_ball_speed;
     } else {
         if(x_ball>=(256-8)) x_ball_speed = -x_ball_speed;
-        if(y_ball>=(230-8) || y_ball <= 6) y_ball_speed = -y_ball_speed;
+        if(y_ball <= 6) y_ball_speed = -y_ball_speed;
+        if(y_ball>=(230-8))
+        {
+            return FALSE;
+        }
     }
+    return TRUE;
 
 }
 
-void move_paddle()
+void move_paddle(void)
 {
 
     spr=oam_meta_spr(x_paddle,y_paddle,spr,paddle);
@@ -130,13 +194,24 @@ void move_paddle()
     
 }
 
+void generateLevel1(void)
+{
+    put_brick(NTADR_A(4,4));
+    put_brick(NTADR_A(5,4));
+    put_brick(NTADR_A(6,4));
+    put_brick(NTADR_A(8,4));
+}
 
 void main(void)
 {
     //The menu doesn't show the right way yet, simply because there are no letters yet in the tileset
     home();
 
+    drawBackground();
+
 	pal_spr(palSprites);//set palette for sprites
+
+    generateLevel1();
 
 	ppu_on_all();//enable rendering
 
@@ -158,7 +233,11 @@ void main(void)
             continue;
         }
 
-        move_ball();
+        if(!move_ball())
+        {
+            lostScreen();
+            break;
+        }
         
         move_paddle();
 

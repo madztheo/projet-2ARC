@@ -264,3 +264,4 @@ sounds_data:
 .segment "CHARS"
 
 	.incbin "background.chr"
+	.incbin "tileset.chr"
