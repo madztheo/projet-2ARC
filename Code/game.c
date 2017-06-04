@@ -13,9 +13,6 @@ static unsigned char key;
 static unsigned char menu;
 static unsigned char pause = FALSE;
 
-
-//two players coords
-
 static unsigned char x_paddle = 100;
 static const unsigned char y_paddle = 212;
 
@@ -97,8 +94,8 @@ void lostScreen(void)
 
 		key=pad_trigger(0);
 
-		//We wait that the user presses START (enter on a PC)
-		if(key&PAD_START){
+		//We wait that the user presses A (F on a PC)
+		if(key&PAD_A){
             pal_clear(); //Set every color to black, hence hide everything
             clearScreen();
             ppu_off();
@@ -129,7 +126,7 @@ void home(void){
     put_str(NTADR_A(2,10),"O  O O O   O  O  O O  O O   ");
     put_str(NTADR_A(2,11),"OOOO O  O OOO OOOO OOOO OOOO");
     put_str(NTADR_A(2,12),"                O           ");
-    put_str(NTADR_A(10,18),"PRESS  START");
+    put_str(NTADR_A(12,18),"PRESS  A");
 
 	ppu_on_all();
 
@@ -139,8 +136,8 @@ void home(void){
 
 		key=pad_trigger(0);
 
-		//We wait that the user presses START (enter on a PC)
-		if(key&PAD_START){
+		//We wait that the user presses A (F on a PC)
+		if(key&PAD_A){
             sfx_play(0,0);
             pal_clear(); //Set every color to black, hence hide everything
             clearScreen();
@@ -224,10 +221,10 @@ void main(void)
         spr = 0;
         key=pad_trigger(0);
 
-        //To pause when the user presses SELECT (S on a PC)
-        if(key&PAD_SELECT && !pause){
+        //To pause when the user presses START (Enter on a PC)
+        if(key&PAD_START && !pause){
             pause = TRUE;
-        } else if(key&PAD_SELECT && pause){
+        } else if(key&PAD_START && pause){
             pause = FALSE;
         } else if(pause){
             continue;
