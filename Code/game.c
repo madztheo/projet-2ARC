@@ -3,10 +3,11 @@
 
 #include "neslib.h"
 #include "background.h"
-
+#include "level1.h"
 
 //general purpose vars
 
+static unsigned char i;
 static unsigned char spr; //To keep track of our sprite
 static unsigned char pad;
 static unsigned char key;
@@ -20,6 +21,29 @@ static unsigned char x_ball= 116;
 static unsigned char y_ball = 200;
 static unsigned char x_ball_speed = -1;
 static unsigned char y_ball_speed = -1;
+
+static unsigned int score = 0;
+static unsigned char scoreTab[5];
+
+unsigned char currentLevel = 1;
+
+/*const unsigned char level1[] = {
+    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+    0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,
+    0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,
+    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+};*/
 
 
 const unsigned char paddle[]={
@@ -55,10 +79,18 @@ void put_str(unsigned int adr,const char *str)
 	}
 }
 
+void put_nb(unsigned int adr, const char nb)
+{
+	vram_adr(adr);
+    vram_put(0x4f + nb); //Number starts at 4f in the table
+}
+
+
 void put_brick(unsigned int adr)
 {
     vram_adr(adr);
     vram_put(0x06);
+    vram_put(0x07);
 }
 
 
@@ -66,13 +98,45 @@ void drawBackground(void)
 {
     pal_bg(paletteBG);
     vram_adr(NAMETABLE_A);
-    vram_unrle(background);
+    /*if(currentLevel == 1)
+    {
+        vram_unrle(level1);
+    }
+    else 
+    {*/
+        vram_unrle(background);
+    //}
 }
 
 void clearScreen(void)
 {
     vram_adr(NAMETABLE_A);
     vram_fill(0x10, 0x3A0); 
+}
+
+void updateScore(unsigned char valueToAdd)
+{
+    score += valueToAdd;
+    scoreTab[0] = score%10;
+    scoreTab[1] = score > 10 ? score/10%10 : 0;
+    scoreTab[2] = score > 100 ? score/100%10 : 0;
+    scoreTab[3] = score > 1000 ? score/1000%10 : 0;
+    scoreTab[4] = score > 10000 ? score/10000 : 0;
+}
+
+void printScore(void)
+{
+    spr=oam_spr(12,16,'S'+ 0x1f,1,spr);
+    spr=oam_spr(20,16,'C'+ 0x1f,1,spr);
+    spr=oam_spr(28,16,'O'+ 0x1f,1,spr);
+    spr=oam_spr(36,16,'R'+ 0x1f,1,spr);
+    spr=oam_spr(44,16,'E'+ 0x1f,1,spr);
+
+    spr=oam_spr(12,24, scoreTab[4] + 0x4f,1,spr);
+    spr=oam_spr(20,24, scoreTab[3] + 0x4f,1,spr);
+    spr=oam_spr(28,24, scoreTab[2] + 0x4f,1,spr);
+    spr=oam_spr(36,24, scoreTab[1] + 0x4f,1,spr);
+    spr=oam_spr(44,24, scoreTab[0] + 0x4f,1,spr);
 }
 
 
@@ -163,6 +227,7 @@ char move_ball(void)
     if(!(x_ball + 8 < x_paddle || x_ball > x_paddle + 40
     || y_ball + 6 < y_paddle))
     {
+        updateScore(1);
         x_ball_speed = x_ball_speed;
         y_ball_speed = -y_ball_speed;
     } else {
@@ -191,13 +256,7 @@ void move_paddle(void)
     
 }
 
-void generateLevel1(void)
-{
-    put_brick(NTADR_A(4,4));
-    put_brick(NTADR_A(5,4));
-    put_brick(NTADR_A(6,4));
-    put_brick(NTADR_A(8,4));
-}
+
 
 void main(void)
 {
@@ -207,8 +266,6 @@ void main(void)
     drawBackground();
 
 	pal_spr(palSprites);//set palette for sprites
-
-    generateLevel1();
 
 	ppu_on_all();//enable rendering
 
@@ -237,6 +294,8 @@ void main(void)
         }
         
         move_paddle();
+
+        printScore();
 
 	}
 }
