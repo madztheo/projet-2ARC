@@ -3,16 +3,16 @@
 
 #include "neslib.h"
 #include "background.h"
-#include "level1.h"
 
 //general purpose vars
 
-static unsigned char i;
+static unsigned int i;
 static unsigned char spr; //To keep track of our sprite
 static unsigned char pad;
 static unsigned char key;
-static unsigned char menu;
+//static unsigned char menu;
 static unsigned char pause = FALSE;
+static unsigned char frame = 0;
 
 static unsigned char x_paddle = 100;
 static const unsigned char y_paddle = 212;
@@ -25,25 +25,47 @@ static unsigned char y_ball_speed = -1;
 static unsigned int score = 0;
 static unsigned char scoreTab[5];
 
-unsigned char currentLevel = 1;
+static unsigned int currentPosition = 0;
+static unsigned char wallLeftPos = 0;
+static unsigned char wallRightPos = 0;
+static unsigned char wallTopPos = 0;
 
-/*const unsigned char level1[] = {
-    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-    0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,
-    0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,
-    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
-};*/
+static unsigned char update_list[50];
+
+static unsigned char currentLevelNb = 1;
+
+static unsigned char canDestroyBrick = TRUE;
+
+static unsigned char level[] = {
+    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+    0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,
+    0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,
+    0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,
+    0,0,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,0,0,
+    0,0,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,0,0,
+    0,0,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,0,0,
+    0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,
+    0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,
+    0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,
+    0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,
+    0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,
+    0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,
+    0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,
+    0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,
+    0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,
+    0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,
+    0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,
+    0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,
+    0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,
+    0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,
+    0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,
+    0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,
+    0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,
+    0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,
+    0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,
+    0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,
+    0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0
+};
 
 
 const unsigned char paddle[]={
@@ -98,14 +120,7 @@ void drawBackground(void)
 {
     pal_bg(paletteBG);
     vram_adr(NAMETABLE_A);
-    /*if(currentLevel == 1)
-    {
-        vram_unrle(level1);
-    }
-    else 
-    {*/
-        vram_unrle(background);
-    //}
+    vram_unrle(background);
 }
 
 void clearScreen(void)
@@ -113,6 +128,7 @@ void clearScreen(void)
     vram_adr(NAMETABLE_A);
     vram_fill(0x50, 0x3A0); 
 }
+
 
 void updateScore(unsigned char valueToAdd)
 {
@@ -126,17 +142,52 @@ void updateScore(unsigned char valueToAdd)
 
 void printScore(void)
 {
-    spr=oam_spr(12,16,'S'- 0x21,1,spr);
-    spr=oam_spr(20,16,'C'- 0x21,1,spr);
-    spr=oam_spr(28,16,'O'- 0x21,1,spr);
-    spr=oam_spr(36,16,'R'- 0x21,1,spr);
-    spr=oam_spr(44,16,'E'- 0x21,1,spr);
+    spr=oam_spr(20,16,'S'- 0x21,1,spr);
+    spr=oam_spr(28,16,'C'- 0x21,1,spr);
+    spr=oam_spr(36,16,'O'- 0x21,1,spr);
+    spr=oam_spr(44,16,'R'- 0x21,1,spr);
+    spr=oam_spr(52,16,'E'- 0x21,1,spr);
 
-    spr=oam_spr(12,24, scoreTab[4] + 0x0f,1,spr);
-    spr=oam_spr(20,24, scoreTab[3] + 0x0f,1,spr);
-    spr=oam_spr(28,24, scoreTab[2] + 0x0f,1,spr);
-    spr=oam_spr(36,24, scoreTab[1] + 0x0f,1,spr);
-    spr=oam_spr(44,24, scoreTab[0] + 0x0f,1,spr);
+    spr=oam_spr(20,24, scoreTab[4] + 0x0f,1,spr);
+    spr=oam_spr(28,24, scoreTab[3] + 0x0f,1,spr);
+    spr=oam_spr(36,24, scoreTab[2] + 0x0f,1,spr);
+    spr=oam_spr(44,24, scoreTab[1] + 0x0f,1,spr);
+    spr=oam_spr(52,24, scoreTab[0] + 0x0f,1,spr);
+}
+
+
+void checkCollisionOfBall(void)
+{
+    //+4 here because we the middle top of the ball not the top left corner
+    currentPosition = ((x_ball+4)/ 8) + ((y_ball-6)/ 8) * 32;
+    if(canDestroyBrick && level[currentPosition] > 1)
+    {
+        canDestroyBrick = FALSE;
+        y_ball_speed = -y_ball_speed; 
+        //To set the update of the background with the new broken tile
+        //Those fancy computation are here to make sure to get an even number for the axis
+        //so as to always destroy one brick and not halves of bricks
+        update_list[0] = MSB(NTADR_A((((x_ball+4)/8)/2) * 2, (y_ball-6)/ 8 + 1))|NT_UPD_HORZ; //The high byte of its address
+        update_list[1] = LSB(NTADR_A((((x_ball+4)/8)/2) * 2, (y_ball-6) / 8 + 1)); //The low byte of its address
+        update_list[2] = 2; //The number of tiles to write
+        update_list[3] = level[currentPosition] == 3 ? 0x48 : 0xff; //The 1st tile
+        update_list[4] = level[currentPosition] == 3 ? 0x49 : 0xff; //The 2nd
+        update_list[5] = NT_UPD_EOF; //The end
+        //We make the ball bounce on the brick
+        set_vram_update(update_list); //And we set the update in the vram
+        updateScore(100);//We increment the score of 100
+        if(currentPosition % 2 == 0)
+        {
+            level[currentPosition] -= 1;
+            level[currentPosition+1] -= 1;
+        }
+        else
+        {
+            level[currentPosition-1] -= 1;
+            level[currentPosition] -= 1;
+        }
+
+    }
 }
 
 
@@ -216,23 +267,42 @@ void home(void){
 char move_ball(void)
 {
     spr=oam_spr(x_ball,y_ball,0x45,1,spr);//0x45 is tile number, 1 is palette
+    if(canDestroyBrick != TRUE && frame > 10)
+    {
+        frame = 0;
+        canDestroyBrick = TRUE;
+    }
+    else if(canDestroyBrick != TRUE)
+    {
+        frame++;
+    }
 
     //move the ball
 
     x_ball += x_ball_speed;
     y_ball += y_ball_speed;
 
-    //bounce the ball off the edges
+    checkCollisionOfBall();
 
     if(!(x_ball + 8 < x_paddle || x_ball > x_paddle + 40
     || y_ball + 6 < y_paddle))
     {
-        updateScore(1);
+        
         x_ball_speed = x_ball_speed;
         y_ball_speed = -y_ball_speed;
     } else {
-        if(x_ball>=(256-8)) x_ball_speed = -x_ball_speed;
-        if(y_ball <= 6) y_ball_speed = -y_ball_speed;
+        if(x_ball>=wallRightPos-8)
+        {
+            x_ball_speed = -x_ball_speed;
+        } 
+        if(x_ball<=wallLeftPos)
+        {
+             x_ball_speed = -x_ball_speed;
+        }
+        if(y_ball <= wallTopPos)
+        {
+            y_ball_speed = -y_ball_speed;
+        } 
         if(y_ball>=(230-8))
         {
             return FALSE;
@@ -256,6 +326,34 @@ void move_paddle(void)
     
 }
 
+void generateLevel(void)
+{
+    if(currentLevelNb == 2)
+    {
+        for(i = 0; i < 28; i++)
+        {
+            level[i+5*32+2] = 1;
+        }
+    }
+
+    wallLeftPos = 2 * 8;
+    wallRightPos = 256 - (2 * 8);
+    wallTopPos = 2 * 8;
+    for(i = 0; i < 0x3A0; i += 2)
+    {
+        if(level[i] == 3)
+        {
+            put_brick(NTADR_A(i%32, i/32+1));
+        }
+        else if(level[i] == 1)
+        {
+            vram_adr(NTADR_A(i%32, i/32+1));
+            vram_put(0xff);
+            vram_put(0xff);
+        }
+    }
+}
+
 
 
 void main(void)
@@ -263,9 +361,13 @@ void main(void)
     //The menu doesn't show the right way yet, simply because there are no letters yet in the tileset
     home();
 
+    //currentLevelNb = 2;
+
     drawBackground();
 
 	pal_spr(palSprites);//set palette for sprites
+
+    generateLevel();
 
 	ppu_on_all();//enable rendering
 
@@ -274,7 +376,9 @@ void main(void)
 	while(1)
 	{
 		ppu_wait_nmi();//wait for next TV frame
-        
+
+        set_vram_update(NULL);
+
         spr = 0;
         key=pad_trigger(0);
 
