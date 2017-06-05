@@ -47,10 +47,10 @@ unsigned char currentLevel = 1;
 
 
 const unsigned char paddle[]={
-	0,	0,	0x01,	0, 
-	8,	0,	0x02,	0,
-	16,	0,	0x03,	0,
-	24,	0,	0x04,	0,
+	0,	0,	0x41,	0, 
+	8,	0,	0x42,	0,
+	16,	0,	0x43,	0,
+	24,	0,	0x44,	0,
 	128
 };
 
@@ -75,22 +75,22 @@ void put_str(unsigned int adr,const char *str)
 		if(!*str) break;
 
         //To be changed once the alhpabet is integrated in our tileset
-		vram_put((*str++)+0x1f);//-0x20 because ASCII code 0x20 is placed in tile 0 of the CHR
+		vram_put((*str++)-0x21);//-0x20 because ASCII code 0x20 is placed in tile 0 of the CHR
 	}
 }
 
 void put_nb(unsigned int adr, const char nb)
 {
 	vram_adr(adr);
-    vram_put(0x4f + nb); //Number starts at 4f in the table
+    vram_put(0x0f + nb); //Number starts at 4f in the table
 }
 
 
 void put_brick(unsigned int adr)
 {
     vram_adr(adr);
-    vram_put(0x06);
-    vram_put(0x07);
+    vram_put(0x46);
+    vram_put(0x47);
 }
 
 
@@ -111,7 +111,7 @@ void drawBackground(void)
 void clearScreen(void)
 {
     vram_adr(NAMETABLE_A);
-    vram_fill(0x10, 0x3A0); 
+    vram_fill(0x50, 0x3A0); 
 }
 
 void updateScore(unsigned char valueToAdd)
@@ -126,17 +126,17 @@ void updateScore(unsigned char valueToAdd)
 
 void printScore(void)
 {
-    spr=oam_spr(12,16,'S'+ 0x1f,1,spr);
-    spr=oam_spr(20,16,'C'+ 0x1f,1,spr);
-    spr=oam_spr(28,16,'O'+ 0x1f,1,spr);
-    spr=oam_spr(36,16,'R'+ 0x1f,1,spr);
-    spr=oam_spr(44,16,'E'+ 0x1f,1,spr);
+    spr=oam_spr(12,16,'S'- 0x21,1,spr);
+    spr=oam_spr(20,16,'C'- 0x21,1,spr);
+    spr=oam_spr(28,16,'O'- 0x21,1,spr);
+    spr=oam_spr(36,16,'R'- 0x21,1,spr);
+    spr=oam_spr(44,16,'E'- 0x21,1,spr);
 
-    spr=oam_spr(12,24, scoreTab[4] + 0x4f,1,spr);
-    spr=oam_spr(20,24, scoreTab[3] + 0x4f,1,spr);
-    spr=oam_spr(28,24, scoreTab[2] + 0x4f,1,spr);
-    spr=oam_spr(36,24, scoreTab[1] + 0x4f,1,spr);
-    spr=oam_spr(44,24, scoreTab[0] + 0x4f,1,spr);
+    spr=oam_spr(12,24, scoreTab[4] + 0x0f,1,spr);
+    spr=oam_spr(20,24, scoreTab[3] + 0x0f,1,spr);
+    spr=oam_spr(28,24, scoreTab[2] + 0x0f,1,spr);
+    spr=oam_spr(36,24, scoreTab[1] + 0x0f,1,spr);
+    spr=oam_spr(44,24, scoreTab[0] + 0x0f,1,spr);
 }
 
 
@@ -215,7 +215,7 @@ void home(void){
 
 char move_ball(void)
 {
-    spr=oam_spr(x_ball,y_ball,0x05,1,spr);//0x05 is tile number, 1 is palette
+    spr=oam_spr(x_ball,y_ball,0x45,1,spr);//0x45 is tile number, 1 is palette
 
     //move the ball
 
