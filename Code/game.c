@@ -170,7 +170,6 @@ void checkCollisionOfBall(void)
                 canDestroyBrick = FALSE;
                 //We make the ball bounce on the brick
                 y_ball_speed = -y_ball_speed; 
-                
                 //To set the update of the background with the new broken tile
                 //Those fancy computations are here to make sure to get an even number for the x-axis
                 
@@ -312,7 +311,7 @@ void home(void){
 char move_ball(void)
 {
     spr=oam_spr(x_ball,y_ball,0x45,1,spr);//0x45 is tile number, 1 is palette
-    if(canDestroyBrick != TRUE && frame > 5)
+    if(canDestroyBrick != TRUE && frame > 10)
     {
         frame = 0;
         canDestroyBrick = TRUE;
@@ -342,17 +341,17 @@ char move_ball(void)
         if(x_ball>=wallRightPos-8)
         {
             x_ball_speed = -x_ball_speed;
-            x_ball += x_ball_speed * 2;
+            x_ball = wallRightPos - 10;
         } 
         else if(x_ball<=wallLeftPos)
         {
              x_ball_speed = -x_ball_speed;
-             x_ball += x_ball_speed * 2;
+             x_ball = wallLeftPos + 2;
         }
         else if(y_ball <= wallTopPos)
         {
             y_ball_speed = -y_ball_speed;
-            y_ball += y_ball_speed * 2;
+            y_ball = wallTopPos + 2;
         } 
         else if(y_ball>=(230-8))
         {
@@ -414,10 +413,31 @@ void generateLevel(void)
     }
 }
 
+void showNextLevel(void)
+{
+    pal_clear();
+
+    clearScreen();
+
+    pal_col(1, 0x21);
+
+    put_str(NTADR_A(5,13), "GET READY FOR LEVEL");
+    put_nb(NTADR_A(25,13), currentLevelNb);
+
+    ppu_on_all();
+
+    delay(120);
+
+    ppu_off();
+}
+
 
 void goToNextLevel(void)
 {   
+    
     ppu_off();
+    currentLevelNb++;
+    showNextLevel();
     spr = 0;
     canDestroyBrick = FALSE;
     set_vram_update(NULL);
@@ -428,8 +448,11 @@ void goToNextLevel(void)
     x_ball_speed = -1;
     y_ball_speed = -1;
     frame = 0;
-    currentLevelNb++;
 
+    pal_spr(palSprites);
+
+    drawBackground();
+    
     generateLevel();
 
     printLevel();
@@ -439,7 +462,7 @@ void goToNextLevel(void)
 
     ppu_on_all();
     canDestroyBrick = TRUE;
-    delay(120);//Wait 120 frames, so pretty much 2 seconds
+    //delay(60);//Wait 60 frames, so pretty much 1 seconds
 }
 
 
@@ -447,9 +470,12 @@ void goToNextLevel(void)
 void main(void)
 {
     home();
+    
     while(1)
     {
-        //currentLevelNb = 2;
+        ppu_off();
+
+        showNextLevel();
 
         drawBackground();
 
