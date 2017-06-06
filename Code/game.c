@@ -35,6 +35,7 @@ static unsigned char wallTopPos = 0;
 static unsigned char update_list[6];
 
 static unsigned char currentLevelNb = 1;
+static unsigned char isLevelFinished = FALSE;
 
 static unsigned char canDestroyBrick = TRUE;
 
@@ -56,6 +57,7 @@ const unsigned char palSprites[16]={
 };
 
 const unsigned char paletteBG[16]={ 0x0f,0x00,0x10,0x30,0x0f,0x01,0x21,0x31,0x0f,0x06,0x16,0x26,0x0f,0x09,0x19,0x29 };
+
 
 
 //put a string into the nametable
@@ -128,6 +130,26 @@ void printScore(void)
 }
 
 
+void printLevel(void)
+{
+    put_str(NTADR_A(20,3), "LEVEL");
+    put_nb(NTADR_A(26,3), currentLevelNb);
+}
+
+void checkLevelCompletion()
+{
+    isLevelFinished = TRUE;
+    for(i = 0; i < 0x03A0; ++i)
+    {
+        if(level[i] > 1)
+        {
+            isLevelFinished = FALSE;
+            break;
+        }
+    }
+}
+
+
 void checkCollisionOfBall(void)
 {
     static unsigned char xPos;
@@ -171,7 +193,7 @@ void checkCollisionOfBall(void)
             level[currentPosition-1] -= 1;
             level[currentPosition] -= 1;
         }
-
+        checkLevelCompletion();
     }
 }
 
@@ -185,6 +207,34 @@ void lostScreen(void)
 
     pal_col(1,0x21);
     put_str(NTADR_A(4,1), "YOU LOST!");
+
+    ppu_on_all();
+
+	while(1)
+	{
+	    ppu_wait_nmi();
+
+		key=pad_trigger(0);
+
+		//We wait that the user presses A (F on a PC)
+		if(key&PAD_A){
+            pal_clear(); //Set every color to black, hence hide everything
+            clearScreen();
+            ppu_off();
+            break;
+		}
+	}
+}
+
+void victoryScreen(void)
+{
+    pal_clear();
+    ppu_off();
+
+    clearScreen();
+
+    pal_col(1,0x21);
+    put_str(NTADR_A(4,1), "YOU WON!");
 
     ppu_on_all();
 
@@ -354,12 +404,49 @@ void main(void)
 
     generateLevel();
 
+    printLevel();
+
 	ppu_on_all();//enable rendering
 
 	//now the main loop
  
 	while(1)
 	{
+        if(isLevelFinished)
+        {
+            if(currentLevelNb < 2)
+            {
+                victoryScreen();
+                break;
+            }
+            
+            ppu_off();
+            spr = 0;
+            canDestroyBrick = FALSE;
+            set_vram_update(NULL);
+            isLevelFinished = FALSE;
+            x_paddle = 100;
+            x_ball= 116;
+            y_ball = 200;
+            x_ball_speed = -1;
+            y_ball_speed = -1;
+            frame = 0;
+            currentLevelNb++;
+
+            generateLevel();
+
+            printLevel();
+
+            spr=oam_meta_spr(x_paddle,y_paddle,spr,paddle);
+            spr=oam_spr(x_ball,y_ball,0x45,1,spr);
+
+            ppu_on_all();
+            canDestroyBrick = TRUE;
+            delay(120);//Wait 120 frames, so pretty much 2 seconds
+            
+            continue;
+        }
+
 		ppu_wait_nmi();//wait for next TV frame
 
         set_vram_update(NULL);
