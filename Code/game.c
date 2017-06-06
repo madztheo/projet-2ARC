@@ -24,8 +24,8 @@ static const unsigned char y_paddle = 212;
 
 static unsigned char x_ball= 116;
 static unsigned char y_ball = 200;
-static char x_ball_speed = -1;
-static char y_ball_speed = -1;
+static char x_ball_speed = -2;
+static char y_ball_speed = -2;
 
 static unsigned int score = 0;
 static unsigned char scoreTab[5];
@@ -361,11 +361,11 @@ void move_paddle(void)
 
     if(pad&PAD_LEFT && x_paddle > wallLeftPos)
     {
-        x_paddle-=2;
+        x_paddle-=5;
     } 
     if(pad&PAD_RIGHT && x_paddle < wallRightPos - 32)
     {
-        x_paddle+=2;
+        x_paddle+=5;
     } 
     
 }
@@ -496,8 +496,8 @@ void main(void)
         x_paddle = 100;
         x_ball= 116;
         y_ball = 200;
-        x_ball_speed = -1;
-        y_ball_speed = -1;
+        x_ball_speed = -2;
+        y_ball_speed = -2;
         frame = 0;
         score = 0;
         updateScore(0);
