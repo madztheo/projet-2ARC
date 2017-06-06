@@ -11,7 +11,7 @@
 
 //general purpose vars
 
-static unsigned int i;
+static unsigned int i, j;
 static unsigned char spr; //To keep track of our sprite
 static unsigned char pad;
 static unsigned char key;
@@ -158,49 +158,61 @@ void checkLevelCompletion()
 
 void checkCollisionOfBall(void)
 {
-    static unsigned char xPos;
-    //+4 here because we the middle top of the ball not the top left corner
-    currentPosition = ((x_ball+4)/ 8) + ((y_ball-6)/ 8) * 32;
-    if(canDestroyBrick && level[currentPosition] > 1)
+    static unsigned char xPos = 0;
+    //We loop to test all the corners of the ball 
+    for(i = 0; i <= 8; i += 4)
     {
-        canDestroyBrick = FALSE;
-        //We make the ball bounce on the brick
-        y_ball_speed = -y_ball_speed; 
-        //To set the update of the background with the new broken tile
-        //Those fancy computations are here to make sure to get an even number for the x-axis
+        for(j = 0; j <= 8; j += 8)
+        {
+            currentPosition = ((x_ball+i)/ 8) + ((y_ball-j)/ 8) * 32;
+            if(canDestroyBrick && level[currentPosition] > 1)
+            {
+                canDestroyBrick = FALSE;
+                //We make the ball bounce on the brick
+                y_ball_speed = -y_ball_speed; 
+                
+                //To set the update of the background with the new broken tile
+                //Those fancy computations are here to make sure to get an even number for the x-axis
+                
+                xPos = (((x_ball+i)/8)/2) * 2;//Doing the computation directly in the NTADR_A macro doesn't work somehow
+
+                //so as to always destroy one brick and not halves of bricks
+                update_list[0] = MSB(NTADR_A(xPos, (y_ball-j)/8 + 1))|NT_UPD_HORZ; //The high byte of its address
+                update_list[1] = LSB(NTADR_A(xPos, (y_ball-j)/8 + 1)); //The low byte of its address
+                update_list[2] = 2; //The number of tiles to write
+                update_list[3] = level[currentPosition] == 3 ? 0x48 : 0xff; //The 1st tile
+                update_list[4] = level[currentPosition] == 3 ? 0x49 : 0xff; //The 2nd
+                update_list[5] = NT_UPD_EOF; //The end
         
-        xPos = (((x_ball+4)/8)/2) * 2;//Doing the computation directly in the NTADR_A macro doesn't work somehow
+                set_vram_update(update_list); //And we set the update in the vram
+                if(level[currentPosition] == 3)
+                {
+                    updateScore(50);//We increment the score of 50 when we damage the brick
+                }
+                else
+                {
+                    updateScore(100);//We increment the score of 100 when break the break
+                }
 
-        //so as to always destroy one brick and not halves of bricks
-        update_list[0] = MSB(NTADR_A(xPos, (y_ball-6)/8 + 1))|NT_UPD_HORZ; //The high byte of its address
-        update_list[1] = LSB(NTADR_A(xPos, (y_ball-6)/8 + 1)); //The low byte of its address
-        update_list[2] = 2; //The number of tiles to write
-        update_list[3] = level[currentPosition] == 3 ? 0x48 : 0xff; //The 1st tile
-        update_list[4] = level[currentPosition] == 3 ? 0x49 : 0xff; //The 2nd
-        update_list[5] = NT_UPD_EOF; //The end
-  
-        set_vram_update(update_list); //And we set the update in the vram
-        if(level[currentPosition] == 3)
-        {
-            updateScore(50);//We increment the score of 50 when we damage the brick
+                if(currentPosition % 2 == 0)
+                {
+                    level[currentPosition] -= 1;
+                    level[currentPosition+1] -= 1;
+                }
+                else
+                {
+                    level[currentPosition-1] -= 1;
+                    level[currentPosition] -= 1;
+                }           
+            }
         }
-        else
-        {
-            updateScore(100);//We increment the score of 100 when break the break
-        }
-
-        if(currentPosition % 2 == 0)
-        {
-            level[currentPosition] -= 1;
-            level[currentPosition+1] -= 1;
-        }
-        else
-        {
-            level[currentPosition-1] -= 1;
-            level[currentPosition] -= 1;
-        }
+    }
+ 
+    if(xPos != 0)
+    {
         checkLevelCompletion();
     }
+
 }
 
 
@@ -300,7 +312,7 @@ void home(void){
 char move_ball(void)
 {
     spr=oam_spr(x_ball,y_ball,0x45,1,spr);//0x45 is tile number, 1 is palette
-    if(canDestroyBrick != TRUE && frame > 10)
+    if(canDestroyBrick != TRUE && frame > 5)
     {
         frame = 0;
         canDestroyBrick = TRUE;
@@ -330,16 +342,19 @@ char move_ball(void)
         if(x_ball>=wallRightPos-8)
         {
             x_ball_speed = -x_ball_speed;
+            x_ball += x_ball_speed * 2;
         } 
-        if(x_ball<=wallLeftPos)
+        else if(x_ball<=wallLeftPos)
         {
              x_ball_speed = -x_ball_speed;
+             x_ball += x_ball_speed * 2;
         }
-        if(y_ball <= wallTopPos)
+        else if(y_ball <= wallTopPos)
         {
             y_ball_speed = -y_ball_speed;
+            y_ball += y_ball_speed * 2;
         } 
-        if(y_ball>=(230-8))
+        else if(y_ball>=(230-8))
         {
             return FALSE;
         }
@@ -361,11 +376,11 @@ void move_paddle(void)
 
     if(pad&PAD_LEFT && x_paddle > wallLeftPos)
     {
-        x_paddle-=5;
+        x_paddle-=4;
     } 
     if(pad&PAD_RIGHT && x_paddle < wallRightPos - 32)
     {
-        x_paddle+=5;
+        x_paddle+=4;
     } 
     
 }
@@ -450,18 +465,6 @@ void main(void)
     
         while(1)
         {
-            if(isLevelFinished)
-            {
-                if(currentLevelNb >= 2)
-                {
-                    victoryScreen();
-                    break;
-                }
-
-                goToNextLevel();
-
-                continue;
-            }
 
             ppu_wait_nmi();//wait for next TV frame
 
@@ -488,6 +491,20 @@ void main(void)
             move_paddle();
 
             printScore();
+
+            if(isLevelFinished)
+            {
+                delay(30);
+                if(currentLevelNb >= 2)
+                {
+                    victoryScreen();
+                    break;
+                }
+
+                goToNextLevel();
+
+                continue;
+            }
 
         }
 
