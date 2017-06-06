@@ -3,6 +3,9 @@
 
 #include "neslib.h"
 #include "background.h"
+#include "lose.h"
+#include "win.h"
+#include "logo.h"
 #include "level1.h"
 #include "level2.h"
 
@@ -42,21 +45,25 @@ static unsigned char canDestroyBrick = TRUE;
 static unsigned char level[0x3A0];
 
 const unsigned char paddle[]={
-	0,	0,	0x41,	0, 
-	8,	0,	0x42,	0,
-	16,	0,	0x43,	0,
-	24,	0,	0x44,	0,
+	0,	0,	0x41,	1, 
+	8,	0,	0x42,	1,
+	16,	0,	0x43,	1,
+	24,	0,	0x44,	1,
 	128
 };
 
 const unsigned char palSprites[16]={
 	0x0f,0x17,0x27,0x37,
-	0x0f,0x11,0x21,0x31,
+	0x0f,0x11,0x11,0x21,
 	0x0f,0x15,0x25,0x35,
 	0x0f,0x19,0x29,0x39
 };
 
-const unsigned char paletteBG[16]={ 0x0f,0x00,0x10,0x30,0x0f,0x01,0x21,0x31,0x0f,0x06,0x16,0x26,0x0f,0x09,0x19,0x29 };
+const unsigned char paletteBG[16]={ 0x0f,0x00,0x10,0x30,0x0f,0x01,0x11,0x21,0x0f,0x06,0x16,0x26,0x0f,0x09,0x19,0x29 };
+
+const unsigned char palLogo[] = {
+    0x0F,0x05,0x02,0x30
+};
 
 
 //put a string into the nametable
@@ -204,8 +211,9 @@ void lostScreen(void)
 
     clearScreen();
 
-    pal_col(1,0x21);
-    put_str(NTADR_A(4,1), "YOU LOST!");
+    pal_bg(palLogo);
+    vram_adr(NAMETABLE_A);
+    vram_unrle(lose);
 
     ppu_on_all();
 
@@ -232,8 +240,10 @@ void victoryScreen(void)
 
     clearScreen();
 
-    pal_col(1,0x21);
-    put_str(NTADR_A(4,1), "YOU WON!");
+    pal_bg(palLogo);
+
+    vram_adr(NAMETABLE_A);
+    vram_unrle(win);
 
     ppu_on_all();
 
@@ -261,22 +271,10 @@ void home(void){
 
     clearScreen();
 
-	pal_col(1,0x21);
+    pal_bg(palLogo);
 
-    put_str(NTADR_A(4,1), "OOOO OOOO OOOO OOOO OOOO");
-    put_str(NTADR_A(4,2), "O    O  O O    O    O   ");
-    put_str(NTADR_A(4,3), "O    OOOO  OOO  OOO OOOO");
-    put_str(NTADR_A(4,4), "O    O  O    O    O O   ");
-    put_str(NTADR_A(4,5), "OOOO O  O OOOO OOOO OOOO");
-
-    put_str(NTADR_A(2,7), "OOOO OOOO OOO OOOO O  O OOOO");
-    put_str(NTADR_A(2,8), "O  O O  O  O  O  O O  O O   ");
-    put_str(NTADR_A(2,9), "OOO  OOOO  O  O  O O  O OOOO");
-    put_str(NTADR_A(2,10),"O  O O O   O  O  O O  O O   ");
-    put_str(NTADR_A(2,11),"OOOO O  O OOO OOOO OOOO OOOO");
-    put_str(NTADR_A(2,12),"                O           ");
-    put_str(NTADR_A(12,18),"PRESS  A");
-
+    vram_adr(NAMETABLE_A);
+    vram_unrle(logo);
 
 	ppu_on_all();
 
@@ -314,9 +312,6 @@ char move_ball(void)
 
     //move the ball
 
-    x_ball += x_ball_speed;
-    y_ball += y_ball_speed;
-
     checkCollisionOfBall();
 
     if(!(x_ball + 8 < x_paddle || x_ball > x_paddle + 40
@@ -341,6 +336,8 @@ char move_ball(void)
             return FALSE;
         }
     }
+    x_ball += x_ball_speed;
+    y_ball += y_ball_speed;
     return TRUE;
 
 }
@@ -427,61 +424,76 @@ void goToNextLevel(void)
 void main(void)
 {
     home();
+    while(1)
+    {
+        //currentLevelNb = 2;
 
-    //currentLevelNb = 2;
+        drawBackground();
 
-    drawBackground();
+        pal_spr(palSprites);//set palette for sprites
 
-	pal_spr(palSprites);//set palette for sprites
+        generateLevel();
 
-    generateLevel();
+        printLevel();
 
-    printLevel();
+        ppu_on_all();//enable rendering
 
-	ppu_on_all();//enable rendering
-
-	//now the main loop
- 
-	while(1)
-	{
-        if(isLevelFinished)
+        //now the main loop
+    
+        while(1)
         {
-            if(currentLevelNb >= 2)
+            if(isLevelFinished)
             {
-                victoryScreen();
-                break;
+                if(currentLevelNb >= 2)
+                {
+                    victoryScreen();
+                    break;
+                }
+
+                goToNextLevel();
+
+                continue;
             }
 
-            goToNextLevel();
+            ppu_wait_nmi();//wait for next TV frame
 
-            continue;
+            set_vram_update(NULL);
+
+            spr = 0;
+            key=pad_trigger(0);
+
+            //To pause when the user presses START (Enter on a PC)
+            if(key&PAD_START && !pause){
+                pause = TRUE;
+            } else if(key&PAD_START && pause){
+                pause = FALSE;
+            } else if(pause){
+                continue;
+            }
+
+            if(!move_ball())
+            {
+                lostScreen();
+                break;
+            }
+            
+            move_paddle();
+
+            printScore();
+
         }
 
-		ppu_wait_nmi();//wait for next TV frame
+        canDestroyBrick = TRUE;
+        isLevelFinished = FALSE;
+        x_paddle = 100;
+        x_ball= 116;
+        y_ball = 200;
+        x_ball_speed = -1;
+        y_ball_speed = -1;
+        frame = 0;
+        score = 0;
+        updateScore(0);
+        currentLevelNb = 1;
+    }
 
-        set_vram_update(NULL);
-
-        spr = 0;
-        key=pad_trigger(0);
-
-        //To pause when the user presses START (Enter on a PC)
-        if(key&PAD_START && !pause){
-            pause = TRUE;
-        } else if(key&PAD_START && pause){
-            pause = FALSE;
-        } else if(pause){
-            continue;
-        }
-
-        if(!move_ball())
-        {
-            lostScreen();
-            break;
-        }
-        
-        move_paddle();
-
-        printScore();
-
-	}
 }
