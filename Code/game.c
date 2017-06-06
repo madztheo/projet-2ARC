@@ -59,7 +59,6 @@ const unsigned char palSprites[16]={
 const unsigned char paletteBG[16]={ 0x0f,0x00,0x10,0x30,0x0f,0x01,0x21,0x31,0x0f,0x06,0x16,0x26,0x0f,0x09,0x19,0x29 };
 
 
-
 //put a string into the nametable
 
 void put_str(unsigned int adr,const char *str)
@@ -323,7 +322,6 @@ char move_ball(void)
     if(!(x_ball + 8 < x_paddle || x_ball > x_paddle + 40
     || y_ball + 6 < y_paddle))
     {
-        x_ball_speed = x_ball_speed;
         y_ball_speed = -y_ball_speed;
     } else {
         if(x_ball>=wallRightPos-8)
@@ -356,8 +354,14 @@ void move_paddle(void)
     //This is a single controller game, so 0 (1st controller) will do just fine
     pad=pad_poll(0);
 
-    if(pad&PAD_LEFT && x_paddle > wallLeftPos) x_paddle-=2;
-    if(pad&PAD_RIGHT && x_paddle < wallRightPos - 32) x_paddle+=2;
+    if(pad&PAD_LEFT && x_paddle > wallLeftPos)
+    {
+        x_paddle-=2;
+    } 
+    if(pad&PAD_RIGHT && x_paddle < wallRightPos - 32)
+    {
+        x_paddle+=2;
+    } 
     
 }
 
@@ -391,6 +395,34 @@ void generateLevel(void)
 }
 
 
+void goToNextLevel(void)
+{   
+    ppu_off();
+    spr = 0;
+    canDestroyBrick = FALSE;
+    set_vram_update(NULL);
+    isLevelFinished = FALSE;
+    x_paddle = 100;
+    x_ball= 116;
+    y_ball = 200;
+    x_ball_speed = -1;
+    y_ball_speed = -1;
+    frame = 0;
+    currentLevelNb++;
+
+    generateLevel();
+
+    printLevel();
+
+    spr=oam_meta_spr(x_paddle,y_paddle,spr,paddle);
+    spr=oam_spr(x_ball,y_ball,0x45,1,spr);
+
+    ppu_on_all();
+    canDestroyBrick = TRUE;
+    delay(120);//Wait 120 frames, so pretty much 2 seconds
+}
+
+
 
 void main(void)
 {
@@ -414,36 +446,14 @@ void main(void)
 	{
         if(isLevelFinished)
         {
-            if(currentLevelNb < 2)
+            if(currentLevelNb >= 2)
             {
                 victoryScreen();
                 break;
             }
-            
-            ppu_off();
-            spr = 0;
-            canDestroyBrick = FALSE;
-            set_vram_update(NULL);
-            isLevelFinished = FALSE;
-            x_paddle = 100;
-            x_ball= 116;
-            y_ball = 200;
-            x_ball_speed = -1;
-            y_ball_speed = -1;
-            frame = 0;
-            currentLevelNb++;
 
-            generateLevel();
+            goToNextLevel();
 
-            printLevel();
-
-            spr=oam_meta_spr(x_paddle,y_paddle,spr,paddle);
-            spr=oam_spr(x_ball,y_ball,0x45,1,spr);
-
-            ppu_on_all();
-            canDestroyBrick = TRUE;
-            delay(120);//Wait 120 frames, so pretty much 2 seconds
-            
             continue;
         }
 
