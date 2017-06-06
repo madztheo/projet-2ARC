@@ -24,8 +24,8 @@ static const unsigned char y_paddle = 212;
 
 static unsigned char x_ball= 116;
 static unsigned char y_ball = 200;
-static unsigned char x_ball_speed = -1;
-static unsigned char y_ball_speed = -1;
+static char x_ball_speed = -1;
+static char y_ball_speed = -1;
 
 static unsigned int score = 0;
 static unsigned char scoreTab[5];
@@ -317,6 +317,14 @@ char move_ball(void)
     if(!(x_ball + 8 < x_paddle || x_ball > x_paddle + 40
     || y_ball + 6 < y_paddle))
     {
+        if(x_ball + 4 >= x_paddle + 16)
+        {
+            x_ball_speed = -(((x_paddle + 16) - (x_ball + 4))/16);
+        }
+        else
+        {
+            x_ball_speed = ((x_ball + 4) - (x_paddle + 16))/16;
+        }
         y_ball_speed = -y_ball_speed;
     } else {
         if(x_ball>=wallRightPos-8)
