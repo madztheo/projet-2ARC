@@ -3,6 +3,8 @@
 
 #include "neslib.h"
 #include "background.h"
+#include "level1.h"
+#include "level2.h"
 
 //general purpose vars
 
@@ -30,43 +32,13 @@ static unsigned char wallLeftPos = 0;
 static unsigned char wallRightPos = 0;
 static unsigned char wallTopPos = 0;
 
-static unsigned char update_list[50];
+static unsigned char update_list[6];
 
 static unsigned char currentLevelNb = 1;
 
 static unsigned char canDestroyBrick = TRUE;
 
-static unsigned char level[] = {
-    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-    0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,
-    0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,
-    0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,
-    0,0,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,0,0,
-    0,0,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,0,0,
-    0,0,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,0,0,
-    0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,
-    0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,
-    0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,
-    0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,
-    0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,
-    0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,
-    0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,
-    0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,
-    0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,
-    0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,
-    0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,
-    0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,
-    0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,
-    0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,
-    0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,
-    0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,
-    0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,
-    0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,
-    0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,
-    0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,
-    0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0
-};
-
+static unsigned char level[0x3A0];
 
 const unsigned char paddle[]={
 	0,	0,	0x41,	0, 
@@ -134,10 +106,10 @@ void updateScore(unsigned char valueToAdd)
 {
     score += valueToAdd;
     scoreTab[0] = score%10;
-    scoreTab[1] = score > 10 ? score/10%10 : 0;
-    scoreTab[2] = score > 100 ? score/100%10 : 0;
-    scoreTab[3] = score > 1000 ? score/1000%10 : 0;
-    scoreTab[4] = score > 10000 ? score/10000 : 0;
+    scoreTab[1] = score >= 10 ? score/10%10 : 0;
+    scoreTab[2] = score >= 100 ? score/100%10 : 0;
+    scoreTab[3] = score >= 1000 ? score/1000%10 : 0;
+    scoreTab[4] = score >= 10000 ? score/10000 : 0;
 }
 
 void printScore(void)
@@ -158,24 +130,37 @@ void printScore(void)
 
 void checkCollisionOfBall(void)
 {
+    static unsigned char xPos;
     //+4 here because we the middle top of the ball not the top left corner
     currentPosition = ((x_ball+4)/ 8) + ((y_ball-6)/ 8) * 32;
     if(canDestroyBrick && level[currentPosition] > 1)
     {
         canDestroyBrick = FALSE;
+        //We make the ball bounce on the brick
         y_ball_speed = -y_ball_speed; 
         //To set the update of the background with the new broken tile
-        //Those fancy computation are here to make sure to get an even number for the axis
+        //Those fancy computations are here to make sure to get an even number for the x-axis
+        
+        xPos = (((x_ball+4)/8)/2) * 2;//Doing the computation directly in the NTADR_A macro doesn't work somehow
+
         //so as to always destroy one brick and not halves of bricks
-        update_list[0] = MSB(NTADR_A((((x_ball+4)/8)/2) * 2, (y_ball-6)/ 8 + 1))|NT_UPD_HORZ; //The high byte of its address
-        update_list[1] = LSB(NTADR_A((((x_ball+4)/8)/2) * 2, (y_ball-6) / 8 + 1)); //The low byte of its address
+        update_list[0] = MSB(NTADR_A(xPos, (y_ball-6)/8 + 1))|NT_UPD_HORZ; //The high byte of its address
+        update_list[1] = LSB(NTADR_A(xPos, (y_ball-6)/8 + 1)); //The low byte of its address
         update_list[2] = 2; //The number of tiles to write
         update_list[3] = level[currentPosition] == 3 ? 0x48 : 0xff; //The 1st tile
         update_list[4] = level[currentPosition] == 3 ? 0x49 : 0xff; //The 2nd
         update_list[5] = NT_UPD_EOF; //The end
-        //We make the ball bounce on the brick
+  
         set_vram_update(update_list); //And we set the update in the vram
-        updateScore(100);//We increment the score of 100
+        if(level[currentPosition] == 3)
+        {
+            updateScore(50);//We increment the score of 50 when we damage the brick
+        }
+        else
+        {
+            updateScore(100);//We increment the score of 100 when break the break
+        }
+
         if(currentPosition % 2 == 0)
         {
             level[currentPosition] -= 1;
@@ -243,6 +228,7 @@ void home(void){
     put_str(NTADR_A(2,12),"                O           ");
     put_str(NTADR_A(12,18),"PRESS  A");
 
+
 	ppu_on_all();
 
 	while(1)
@@ -287,7 +273,6 @@ char move_ball(void)
     if(!(x_ball + 8 < x_paddle || x_ball > x_paddle + 40
     || y_ball + 6 < y_paddle))
     {
-        
         x_ball_speed = x_ball_speed;
         y_ball_speed = -y_ball_speed;
     } else {
@@ -321,19 +306,20 @@ void move_paddle(void)
     //This is a single controller game, so 0 (1st controller) will do just fine
     pad=pad_poll(0);
 
-    if(pad&PAD_LEFT &&x_paddle> 0) x_paddle-=2;
-    if(pad&PAD_RIGHT &&x_paddle<223) x_paddle+=2;
+    if(pad&PAD_LEFT && x_paddle > wallLeftPos) x_paddle-=2;
+    if(pad&PAD_RIGHT && x_paddle < wallRightPos - 32) x_paddle+=2;
     
 }
 
 void generateLevel(void)
 {
-    if(currentLevelNb == 2)
+    if(currentLevelNb == 1)
     {
-        for(i = 0; i < 28; i++)
-        {
-            level[i+5*32+2] = 1;
-        }
+        memcpy(level, level1, sizeof(level1));
+    }
+    else if(currentLevelNb == 2)
+    {
+        memcpy(level, level2, sizeof(level2));
     }
 
     wallLeftPos = 2 * 8;
@@ -358,7 +344,6 @@ void generateLevel(void)
 
 void main(void)
 {
-    //The menu doesn't show the right way yet, simply because there are no letters yet in the tileset
     home();
 
     //currentLevelNb = 2;
