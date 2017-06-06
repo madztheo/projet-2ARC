@@ -311,7 +311,7 @@ void home(void){
 char move_ball(void)
 {
     spr=oam_spr(x_ball,y_ball,0x45,1,spr);//0x45 is tile number, 1 is palette
-    if(canDestroyBrick != TRUE && frame > 10)
+    if(canDestroyBrick != TRUE && frame > 2)
     {
         frame = 0;
         canDestroyBrick = TRUE;
@@ -445,8 +445,8 @@ void goToNextLevel(void)
     x_paddle = 100;
     x_ball= 116;
     y_ball = 200;
-    x_ball_speed = -1;
-    y_ball_speed = -1;
+    x_ball_speed = -2;
+    y_ball_speed = -2;
     frame = 0;
 
     pal_spr(palSprites);
