@@ -54,12 +54,12 @@ const unsigned char paddle[]={
 
 const unsigned char palSprites[16]={
 	0x0f,0x17,0x27,0x37,
-	0x0f,0x11,0x11,0x21,
+	0x0f,0x01,0x02,0x12,
 	0x0f,0x15,0x25,0x35,
-	0x0f,0x19,0x29,0x39
+	0x0F,0x05,0x02,0x30
 };
 
-const unsigned char paletteBG[16]={ 0x0f,0x00,0x10,0x30,0x0f,0x01,0x11,0x21,0x0f,0x06,0x16,0x26,0x0f,0x09,0x19,0x29 };
+const unsigned char paletteBG[16]={ 0x0f,0x00,0x10,0x30,0x0f,0x01,0x02,0x12,0x0f,0x06,0x16,0x26,0x0f,0x09,0x19,0x29 };
 
 const unsigned char palLogo[] = {
     0x0F,0x05,0x02,0x30
@@ -122,17 +122,17 @@ void updateScore(unsigned char valueToAdd)
 
 void printScore(void)
 {
-    spr=oam_spr(20,16,'S'- 0x21,1,spr);
-    spr=oam_spr(28,16,'C'- 0x21,1,spr);
-    spr=oam_spr(36,16,'O'- 0x21,1,spr);
-    spr=oam_spr(44,16,'R'- 0x21,1,spr);
-    spr=oam_spr(52,16,'E'- 0x21,1,spr);
+    spr=oam_spr(20,16,'S'- 0x21,3,spr);
+    spr=oam_spr(28,16,'C'- 0x21,3,spr);
+    spr=oam_spr(36,16,'O'- 0x21,3,spr);
+    spr=oam_spr(44,16,'R'- 0x21,3,spr);
+    spr=oam_spr(52,16,'E'- 0x21,3,spr);
 
-    spr=oam_spr(20,24, scoreTab[4] + 0x0f,1,spr);
-    spr=oam_spr(28,24, scoreTab[3] + 0x0f,1,spr);
-    spr=oam_spr(36,24, scoreTab[2] + 0x0f,1,spr);
-    spr=oam_spr(44,24, scoreTab[1] + 0x0f,1,spr);
-    spr=oam_spr(52,24, scoreTab[0] + 0x0f,1,spr);
+    spr=oam_spr(20,24, scoreTab[4] + 0x0f,3,spr);
+    spr=oam_spr(28,24, scoreTab[3] + 0x0f,3,spr);
+    spr=oam_spr(36,24, scoreTab[2] + 0x0f,3,spr);
+    spr=oam_spr(44,24, scoreTab[1] + 0x0f,3,spr);
+    spr=oam_spr(52,24, scoreTab[0] + 0x0f,3,spr);
 }
 
 
@@ -419,7 +419,7 @@ void showNextLevel(void)
 
     clearScreen();
 
-    pal_col(1, 0x21);
+    pal_col(1, 0x05);
 
     put_str(NTADR_A(5,13), "GET READY FOR LEVEL");
     put_nb(NTADR_A(25,13), currentLevelNb);
