@@ -1,0 +1,270 @@
+<head>
+    <meta charset="UTF-8">
+    <title>Manuel Utilisateur</title>
+    <link rel="stylesheet" href="https://bootswatch.com/readable/bootstrap.min.css">
+    <style>
+        .container {
+            padding-left: 10%;
+            padding-right: 10%;
+            height: 100%;
+        }
+
+        html,
+        body {
+            height: 100%;
+        }
+
+        #home {
+            height: 100%;
+            min-height: 100%;
+            position: relative;
+        }
+
+        #home-box {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        .col-md-4 {
+            width: 33.33333333333333%;
+            float: left;
+        }
+
+        .col-md-3 {
+            width: 25%;
+            float: left;
+        }
+
+        .bs-callout {
+            padding: 20px;
+            margin: 20px 0;
+            border: 1px solid #eee;
+            border-left-width: 5px;
+            border-radius: 3px
+        }
+
+        .bs-callout h4 {
+            margin-top: 0;
+            margin-bottom: 5px;
+            font-size: 16px;
+        }
+
+        .bs-callout p:last-child {
+            margin-bottom: 0
+        }
+
+        .bs-callout code {
+            border-radius: 3px
+        }
+
+        .bs-callout+.bs-callout {
+            margin-top: -5px
+        }
+
+        .bs-callout-danger {
+            border-left-color: #ff4136
+        }
+
+        .bs-callout-danger h4 {
+            color: #ff4136
+        }
+
+        .bs-callout-warning {
+            border-left-color: #ff851b
+        }
+
+        .bs-callout-warning h4 {
+            color: #ff851b
+        }
+
+        .bs-callout-info {
+            border-left-color: #75caeb
+        }
+
+        .bs-callout-info h4 {
+            color: #75caeb
+        }
+
+        .bs-callout-success {
+            border-left-color: #28b62c
+        }
+
+        .bs-callout-success h4 {
+            color: #28b62c;
+        }
+
+        .dropdown-toggle {
+            padding: 9px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div id="home">
+            <div id="home-box">
+                <div class="header clearfix">
+                    <h3 class="text-muted">Manuel utilisateur</h3>
+                </div>
+                <div class="jumbotron">
+                    <h1>Prêt à tout casser?</h1>
+                    <p class="lead">Retournez dans le passé avec cette version d'Arkanoid, célèbre casse brique sur NES! ☺</p>
+                </div>
+                <div class="row">
+                    <div class="col-md-4">
+                        <h4>Lancer le jeu sur un emulateur</emul></h4>
+                        <p>À défaut d'avoir une NES, voici la démarche pour pouvoir éxecuter le jeu sur un PC.</p>
+                        <p><a href="#setup" class="btn btn-default btn-xs" role="button">Lire la suite</a></p>
+                    </div>
+                    <div class="col-md-4">
+                        <h4>Le jeu</h4>
+                        <p>Impatient de jouer? Mais comment marche le jeu?</p>
+                        <div class="btn-group">
+                            <a href="#game" class="btn btn-default btn-xs" role="button">La réponse ici</a>
+                            <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                <span class="caret"></span>
+                                <span class="sr-only">Toggle Dropdown</span>
+                            </button>
+                            <ul class="dropdown-menu">
+                                <li><a href="#game-goal">Le but du jeu</a></li>
+                                <li><a href="#game-score">Le score</a></li>
+                                <li><a href="#game-key">Les touches</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <h4>Les différents écrans</h4>
+                        <p>Au cas où vous seriez perdu, voici la liste des écrans auxquels vous serez confrontés.</p>
+                        <div class="btn-group">
+                            <a href="#screen" class="btn btn-default btn-xs" role="button">Les découvrir</a>
+                            <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                <span class="caret"></span>
+                                <span class="sr-only">Toggle Dropdown</span>
+                            </button>
+                            <ul class="dropdown-menu">
+                                <li><a href="#screen-menu">Acceuil</a></li>
+                                <li><a href="#screen-level">Transition entre niveau</a></li>
+                                <li><a href="#screen-win">Victoire</a></li>
+                                <li><a href="#screen-loose">Défaite</a></li>
+
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="setup">
+            <h2>Lancer le jeu sur un emulateur NES</h2>
+            <ol>
+                <li>Téléchargez l'émulateur FCEUX <a href="http://sourceforge.net/projects/fceultra/files/Binaries/2.2.3/fceux-2.2.3-win32.zip/download"><i class="glyphicon glyphicon-download-alt"></i></a></li>
+                <li>Lancez l'executable <code>fceux.exe</code></li>
+                <li>Parcourez vos fichier: <b>File</b> > <b>Open ROM...</b>
+                    <p><img class="img-thumbnail" src="http://imgur.com/dhPpMn8.png"></p>
+                </li>
+                <li>Ouvrez <code>game.nes</code>
+                <p><img class="img-thumbnail" src="http://imgur.com/GOnLx1Y.png"></p></li>
+            </ol>
+
+        </div>
+
+        <div id="game">
+            <h2>Le jeu</h2>
+            <img class="img-thumbnail" src="http://imgur.com/ym0N16U.png">
+            <div id="game-goal">
+                <h3>Le but du jeu</h3>
+                <p>Il faut détruite chacune des briques sans faire tomber la boule. Chaque brique nécessite d'être touchée une première fois avant de pouvoir être totalement détruite.</p>
+                <p>Si vous faites tomber la boule, vous recommencerez depuis le début.</p>
+                <p>Le jeu dispose actuellement de 2 niveaux.</p>
+            </div>
+            <div id="game-score">
+                <h3>Le score</h3>
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <td><b>Brique touchée</b></td>
+                            <td>+50</td>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><b>Brique détruite</b></td>
+                            <td>+100</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div id="game-key">
+            <h3>Les touches</h3>
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Action</th>
+                        <th>Touche PC</th>
+                        <th>Touche NES</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <th>1</th>
+                        <td>Pause</td>
+                        <td><kbd>Enter</kbd></td>
+                        <td><kbd>Start</kbd></td>
+                    </tr>
+                    <tr>
+                        <th>2</th>
+                        <td>Valider</td>
+                        <td><kbd>F</kbd></td>
+                        <td><kbd>A</kbd></td>
+                    </tr>
+                    <tr>
+                        <th>3</th>
+                        <td>Déplacer le palet vers la gauche</td>
+                        <td><kbd>←</kbd></td>
+                        <td><kbd>←</kbd></td>
+                    </tr>
+                    <tr>
+                        <th>4</th>
+                        <td>Déplacer le palet vers la droite</td>
+                        <td><kbd>→</kbd></td>
+                        <td><kbd>→</kbd></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        </div>
+
+        <div id="screen">
+            <h2>Les écrans</h2>
+            <div id="screen-menu">
+                <h3>L'écran d'acceuil</h3>
+                <p>S'affiche au lancement du jeu.</p>
+                <img class="img-thumbnail" src="http://imgur.com/u4sXJG3.png">
+            </div>
+
+            <div id="screen-level">
+                <h3>L'écran de transition entre les niveaux</h3>
+                <p>S'affiche entre chaque niveau.</p>
+                <img class="img-thumbnail" src="http://imgur.com/r3MOOca.png">
+            </div>
+
+            <div id="screen-win">
+                <h3>L'écran en cas de victoire</h3>
+                <p>S'affiche si tous les niveaux ont été complété.</p>
+                <img class="img-thumbnail" src="http://imgur.com/ixtTXRD.png">
+            </div>
+
+            <div id="screen-loose">
+                <h3>L'écran en cas d'echec</h3>
+                <p>S'affiche si la boule est tombée.</p>
+                <img class="img-thumbnail" src="http://imgur.com/9TKaG9J.png">
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-2.2.4.min.js" integrity="sha256-BbhdlvQf/xTY9gja0Dq3HiwQF8LaCRTXxZKRutelT44=" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
+</body>

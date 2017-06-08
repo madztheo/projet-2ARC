@@ -1,0 +1,99 @@
+<head>
+    <meta charset="UTF-8">
+    <title>Documentation technique</title>
+    <link rel="stylesheet" href="https://bootswatch.com/readable/bootstrap.min.css">
+    <style>
+        .container {
+            padding-left: 10%;
+            padding-right: 10%;
+            margin: 30px auto;
+        }
+
+        html,
+        body {
+            height: 100%;
+            font-size: 18px;
+        }
+
+        .bs-callout {
+            padding: 20px;
+            margin: 20px 0;
+            border: 1px solid #eee;
+            border-left-width: 5px;
+            border-radius: 3px
+        }
+
+        .bs-callout p:last-child {
+            margin-bottom: 0
+        }
+
+        .bs-callout code {
+            border-radius: 3px
+        }
+
+        .bs-callout+.bs-callout {
+            margin-top: -5px
+        }
+
+        .bs-callout-danger {
+            border-left-color: #ce4844
+        }
+
+        .bs-callout-danger span {
+            color: #ce4844
+        }
+
+        .bs-callout-info {
+            border-left-color: #1b809e
+        }
+
+        .bs-callout-info span {
+            color: #1b809e
+        }
+
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header clearfix">
+            <h3 class="text-muted">Documentation technique</h3>
+        </div>
+        <h3>La gestion de l’entrée utilisateur</h3>
+        <p align="justify">
+            Afin de récupérer les touches que presse l’utilisateur, on récupère le flag associé au premier controller (ou joypad) puisqu’ici on ne s’intéresse pas à un éventuel second controller, à l’aide de la fonction pad_poll (pour un appui long) ou pad_trigger (pour un simple appui). Ces fonctions vont s’assurer de récupérer la valeur associée au 1er controller à un moment donné, situé à l’adresse 0x4016. On compare ensuite le flag obtenu aux flags représentant les touches voulues (A, SELECT, LEFT, RIGHT, etc.) à l’aide d’un ET logique binaire (bitwise AND) pour ainsi savoir quelle touche a été pressée par l’utilisateur. On utilise ici le ET binaire pour pouvoir comparer uniquement les bits qui nous intéressent, puisqu’au final le flag retourné par les fonctions précédemment citées pourra être une combinaison des flags de toutes les touches pressées si plusieurs le sont en même temps. À savoir que ces flags sont contenus dans des constantes prédéfinies dans la librairies neslib, correspondant au final à un nombre entier symbolisant la touche recherchée.
+        </p>
+
+        <h3>La gestion des niveaux</h3>
+        <p align="justify">
+            Les niveaux du jeu sont décrits à l’aide d’un tableau descriptif dont nous avons-nous même défini la structure. Ces tableaux contiennent autant de nombres entiers qu’il y a de tiles affichés sur l’écran de la NES. Chaque élément du tableau est donc un nombre avec une signification précise. Le 0 représente le mur et le 1 représente une tile vide. Le 2 et le 3 représente une brique: 3 représente une brique dans son état normal, donc tel qu’elle sera au début du niveau avant que le joueur ait commencé à détruire des briques; 2 représente une brique fracturée, qui a donc été touchée une première fois et qui requiert une autre collision avant d’être complétement détruite. Dans le tableau descriptif définit comme une constante dans un fichier .h à part dans chaque niveau, on ne spécifiera toutefois aucun 2 mais uniquement des 3, les 2 seront eux utilisés uniquement au cours du jeu.
+        </p>
+        <p align="justify">
+            Chaque ligne de l’écran sera symbolisée dans ce tableau par 32 nombres, correspondant au 32 tiles d’une ligne. La première ligne de l’écran sera par exemple les indices de 0 à 31 de ce tableau. Ce tableau suit également une autre règle relative à sa structure, les briques doivent être représentées par des pairs de 3, puisque les briques sont constituées chacune de 2 tiles. Egalement, ces pairs de 3 ne peuvent que commencer à un indice pair (ce qui inclut 0) et non impair. On pourra donc ainsi placer deux 3 aux indices 0 et 1 ou encore aux indices 4 et 5, mais pas un 1 à l’indice 2 avec deux 3 à l’indice 3 et 4 par la suite. Si ces conditions sont remplies, on aura un tableau valide, que l’on pourra réutiliser facilement dans le code, simplement en l’important comme fait pour les fichiers level1.h et level2.h décrivant les deux niveaux fournis du jeu.
+        </p>
+        <p align="justify">
+            Le chargement de ces tableaux dans le code se fait simplement en copiant, à l'aide de la fonction memcpy, le tableau descriptif du niveau dans le tableau descriptif du niveau actuel pour être ensuite utilisé et modifié au cours dépendamment des actions du joueur. Cette méthode nous permet ainsi de créer aisément de nouveaux niveaux.
+        </p>
+
+
+
+        <h3>La gestion des collisions</h3>
+        <p align="justify">
+            Pour gérer les collisions relatives à la balle, nous nous y sommes pris de plusieurs manières. Pour le mur, on détecte simplement si la balle a ses coordonnées inférieures ou égales à celles du mur gauche, droit ou haut. S’il y a collision on renvoie la balle dans l’autre sens en affectant à sa direction l’opposé de sa valeur, en horizontal s’il s’agit du mur gauche ou droit et vertical s’il s’agit du mur haut.
+        </p>
+        <p align="justify">
+            Pour les collisions avec le palet, on détecte encore une fois si les coordonnées de la balle correspondent à celle du palet, puis on détecte où par rapport au centre du palet, la balle a frappé. Ensuite, on effectue un calcul par rapport au centre du palet pour renvoyer la balle soit vers la gauche si la balle tombe sur la partie gauche du palet, soit vers la droite si elle tombe sur la partie droite. Dans le cas où la balle tombe pile au centre, elle rebondira simplement en ligne droite, perpendiculairement au palet. De plus, plus la balle sera vers les côtés du palet, plus elle sera violemment repoussée vers la direction correspondante.
+        </p>
+        <p align="justify">
+            Enfin pour les collisions entre les briques et la balle, on utilise le tableau descriptif du niveau actuel à partir duquel on récupère s’il y a une brique à cet endroit ou non grâce aux coordonnées de la balle. Ce tableau contenant des 3 ou 2 pour les briques, on détecte à chaque fois si à la position courante de la balle pour tous ses bords (haut gauche, bas droite, centre haute, etc.), il y a cette position un 3 ou 2, donc une brique. Et ce à l’aide de calcul adaptés pour faire correspondre la position de la balle à l’indice correspondant dans le tableau descriptif. Dans le cas où il y a bien une brique, on fracture la brique et on passe la valeur dans le tableau descriptif du niveau actuel à 2, si elle était à 3. Sinon on la passe à 1, ce qui signifie qu’elle est complément détruite, donc on la remplace alors par un tile vide pour la faire disparaître.
+        </p>
+
+        <h3>La compilation</h3>
+        <p align="justify">
+            Pour la compilation de notre code, le nécessaire est regroupé dans un script batch, compiler.bat, qu’on peut ensuite appeler pour n’importe quel fichier c (écrit correctement), ce que l’on fait dans compile_all.bat. Le script compile d’abord le fichier crt0.s (avec le compilateur ca65) qui est un fichier en assembleur ca65. Ce fichier est le startup code, définissant toutes les bases pour utiliser le PPU et le NMI flag pour la détection du V-blank notamment. Ce fichier est donc compilé en binaire, dont le résultat sera crt0.o. On compile ensuite notre code, à savoir game.c avec le compilateur cc65, ce qui nous donnera le fichier game.s, donc sa version en assembleur ca65. On compile ensuite ce fichier assembleur en binaire avec le compilateur ca65. Puis on finit avec l’éditeur de lien ld65, qui va nous générer le fichier exécutable en .nes à partir du fichier de config .cfg du fichier crt0.o et game.o précédemment générés et du fichier runtime.lib.
+        </p>
+
+    </div>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
+</body>
